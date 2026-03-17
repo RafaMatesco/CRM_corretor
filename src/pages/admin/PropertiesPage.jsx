@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react'
 import { PropertyForm } from '@/components/admin/PropertyForm'
-import { Badge }        from '@/components/ui/Badge'
-import { Toggle }       from '@/components/ui/Toggle'
-import { Button }       from '@/components/ui/Button'
-import { formatPrice }  from '@/lib/utils'
+import { Badge } from '@/components/ui/Badge'
+import { Toggle } from '@/components/ui/Toggle'
+import { Button } from '@/components/ui/Button'
+import { formatPrice, formatAddress } from '@/lib/utils'
+import { PROPERTY_STATUSES } from '@/lib/constants'
 
 export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTogglePublish, showToast }) {
-  const [search, setSearch]   = useState('')
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing]   = useState(null)
+  const [editing, setEditing] = useState(null)
 
   const filtered = properties.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -68,7 +69,7 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Imóvel', 'Tipo', 'Preço', 'Detalhes', 'Views', 'Status', 'Portal', 'Ações'].map((h) => (
+                {['Imóvel', 'Tipo', 'Status', 'Preço', 'Detalhes', 'Views', 'Portal', 'Ações'].map((h) => (
                   <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 px-4 py-3 whitespace-nowrap">
                     {h}
                   </th>
@@ -83,14 +84,17 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
                       <img src={p.images?.[0]} alt="" className="w-12 h-10 rounded-lg object-cover flex-shrink-0" />
                       <div>
                         <p className="font-semibold text-navy">{p.title}</p>
-                        <p className="text-xs text-gray-400">{p.location}</p>
+                        <p className="text-xs text-gray-400">{formatAddress(p)}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3"><Badge color="gray">{p.type}</Badge></td>
+                  <td className="px-4 py-3">
+                    {(() => { const s = PROPERTY_STATUSES[p.status ?? 'disponivel']; return <Badge color={s.color}>{s.label}</Badge> })()}
+                  </td>
                   <td className="px-4 py-3 font-display font-semibold text-navy">{formatPrice(p.price)}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">
-                    {p.bedrooms > 0 && `${p.bedrooms}q · `}{p.bathrooms > 0 && `${p.bathrooms}b · `}{p.area}m²
+                    {p.bedrooms > 0 && `${p.bedrooms}q · `}{p.bathrooms > 0 && `${p.bathrooms}b · `}{p.area > 0 && `${p.area}m² imóvel`}{p.land_area > 0 && ` · ${p.land_area}m² terreno`}
                   </td>
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-1 text-xs text-gray-400">

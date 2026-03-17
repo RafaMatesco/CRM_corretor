@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, MapPin, Bed, Bath, Car, Maximize2, CheckCircle, Phone, Mail } from 'lucide-react'
-import { LeadModal }  from '@/components/public/LeadModal'
-import { PublicNav }  from '@/components/public/PublicNav'
-import { Badge }      from '@/components/ui/Badge'
-import { Button }     from '@/components/ui/Button'
-import { formatPrice, whatsappUrl } from '@/lib/utils'
+import { LeadModal } from '@/components/public/LeadModal'
+import { PublicNav } from '@/components/public/PublicNav'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { formatPrice, formatAddress, whatsappUrl } from '@/lib/utils'
 import { BROKER_NAME, BROKER_CRECI, BROKER_EMAIL, WHATSAPP_NUMBER } from '@/lib/constants'
+import { PROPERTY_STATUSES, PROPERTY_PURPOSES } from '@/lib/constants'
 
 export function PropertyDetailPage({ property, onBack, onAdminClick, onLead, onRecordView }) {
   const [showLead, setShowLead] = useState(false)
@@ -18,10 +19,11 @@ export function PropertyDetailPage({ property, onBack, onAdminClick, onLead, onR
   )
 
   const specs = [
-    { icon: Bed,      label: 'Quartos',   value: property.bedrooms,  show: property.bedrooms  > 0 },
-    { icon: Bath,     label: 'Banheiros', value: property.bathrooms, show: property.bathrooms > 0 },
-    { icon: Maximize2,label: 'Área',      value: `${property.area} m²`, show: true },
-    { icon: Car,      label: 'Vagas',     value: property.parking,   show: property.parking   > 0 },
+    { icon: Bed, label: 'Quartos', value: property.bedrooms, show: property.bedrooms > 0 },
+    { icon: Bath, label: 'Banheiros', value: property.bathrooms, show: property.bathrooms > 0 },
+    { icon: Maximize2, label: 'Área do Imóvel', value: `${property.area} m²`, show: !!property.area },
+    { icon: Maximize2, label: 'Área do Terreno', value: `${property.land_area} m²`, show: !!property.land_area },
+    { icon: Car, label: 'Vagas', value: property.parking, show: property.parking > 0 },
   ]
 
   return (
@@ -49,14 +51,21 @@ export function PropertyDetailPage({ property, onBack, onAdminClick, onLead, onR
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10">
           {/* Left */}
           <div>
-            <Badge color="navy" className="mb-4">{property.type}</Badge>
+            <div className="flex items-center gap-2 mb-4">
+              <Badge color="navy">{property.type}</Badge>
+              {property.purpose && PROPERTY_PURPOSES[property.purpose] && (
+                <Badge color={PROPERTY_PURPOSES[property.purpose].color}>
+                  {PROPERTY_PURPOSES[property.purpose].label}
+                </Badge>
+              )}
+            </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold text-navy mb-2">{property.title}</h1>
             <p className="flex items-center gap-1.5 text-gray-400 text-sm mb-8">
-              <MapPin size={14} /> {property.location}
+              <MapPin size={14} className="shrink-0" /> {formatAddress(property)}
             </p>
 
             {/* Specs */}
-            <div className="grid grid-cols-4 gap-3 mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
               {specs.filter((s) => s.show).map((s) => (
                 <div key={s.label} className="bg-cream rounded-xl p-4 text-center">
                   <s.icon size={20} className="mx-auto mb-2 text-gold" />

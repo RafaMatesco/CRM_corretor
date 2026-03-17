@@ -1,15 +1,16 @@
 import { useState, useRef } from 'react'
-import { Save, Upload, X, Image, Loader2 } from 'lucide-react'
-import { Modal }   from '@/components/ui/Modal'
+import { Save, Upload, X, Image, Loader2, Search } from 'lucide-react'
+import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
-import { Toggle }  from '@/components/ui/Toggle'
-import { Button }  from '@/components/ui/Button'
-import { PROPERTY_TYPES } from '@/lib/constants'
+import { Toggle } from '@/components/ui/Toggle'
+import { Button } from '@/components/ui/Button'
+import { PROPERTY_TYPES, PROPERTY_STATUSES, PROPERTY_PURPOSES } from '@/lib/constants'
 import { useStorage } from '@/hooks/useStorage'
 
 const BLANK = {
-  title: '', type: 'Apartamento', location: '', price: '',
-  bedrooms: '', bathrooms: '', area: '', parking: '',
+  title: '', type: 'Apartamento', status: 'disponivel', purpose: 'venda', price: '',
+  cep: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: 'SP', zone: '',
+  bedrooms: '', bathrooms: '', area: '', land_area: '', parking: '',
   description: '', features: '', is_published: false,
   images: [],
 }
@@ -20,12 +21,12 @@ export function PropertyForm({ property, onSave, onClose }) {
 
   const [form, setForm] = useState(() => property
     ? {
-        ...property,
-        features: Array.isArray(property.features)
-          ? property.features.join(', ')
-          : property.features,
-        images: property.images ?? [],
-      }
+      ...property,
+      features: Array.isArray(property.features)
+        ? property.features.join(', ')
+        : property.features,
+      images: property.images ?? [],
+    }
     : BLANK
   )
 
@@ -33,7 +34,44 @@ export function PropertyForm({ property, onSave, onClose }) {
   const [uploadingCount, setUploadingCount] = useState(0)
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const valid = form.title.trim() && form.location.trim()
+
+  // ── CEP lookup via ViaCEP ────────────────────────────────────────
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepError,   setCepError]   = useState('')
+
+  const lookupCep = async () => {
+    const raw = form.cep.replace(/\D/g, '')
+    if (raw.length !== 8) { setCepError('CEP deve ter 8 dígitos'); return }
+    setCepLoading(true); setCepError('')
+    try {
+      const res  = await fetch(`https://viacep.com.br/ws/${raw}/json/`)
+      const data = await res.json()
+      if (data.erro) { setCepError('CEP não encontrado'); return }
+      setForm((f) => ({
+        ...f,
+        street:       data.logradouro ?? f.street,
+        neighborhood: data.bairro     ?? f.neighborhood,
+        city:         data.localidade ?? f.city,
+        state:        data.uf         ?? f.state,
+        cep:          raw,
+      }))
+    } catch { setCepError('Erro ao buscar CEP') }
+    finally  { setCepLoading(false) }
+  }
+
+  const handleCepKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); lookupCep() } }
+
+  // ── Price mask ──────────────────────────────────────────────────────────
+  const formatPriceMask = (raw) => {
+    const digits = String(raw).replace(/\D/g, '')
+    if (!digits) return ''
+    return 'R$ ' + Number(digits).toLocaleString('pt-BR')
+  }
+  const handlePriceChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, '')
+    setForm((f) => ({ ...f, price: digits }))
+  }
+  const valid = form.title.trim() && (form.street.trim() || form.city.trim())
 
   // ── Image upload ────────────────────────────────────────────────────────
   const handleFileChange = async (e) => {
@@ -61,13 +99,23 @@ export function PropertyForm({ property, onSave, onClose }) {
   // ── Save ────────────────────────────────────────────────────────────────
   const handleSave = () => {
     if (!valid) return
+    // Build legacy location string for backward compat
+    const addrParts = [form.neighborhood, form.city, form.state].filter(Boolean)
+    const location = addrParts.join(', ') || form.city || ''
+    // Normalize zone
+    const zone = form.zone?.trim()
+      ? form.zone.trim().replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      : ''
     onSave({
       ...form,
-      price:     parseInt(form.price)     || 0,
-      bedrooms:  parseInt(form.bedrooms)  || 0,
+      location,
+      zone,
+      price: parseInt(form.price) || 0,
+      bedrooms: parseInt(form.bedrooms) || 0,
       bathrooms: parseInt(form.bathrooms) || 0,
-      area:      parseInt(form.area)      || 0,
-      parking:   parseInt(form.parking)   || 0,
+      area: parseInt(form.area) || 0,
+      land_area: parseInt(form.land_area) || 0,
+      parking: parseInt(form.parking) || 0,
       features: typeof form.features === 'string'
         ? form.features.split(',').map((f) => f.trim()).filter(Boolean)
         : form.features,
@@ -88,15 +136,93 @@ export function PropertyForm({ property, onSave, onClose }) {
           <Select label="Tipo" value={form.type} onChange={set('type')}>
             {PROPERTY_TYPES.map((t) => <option key={t}>{t}</option>)}
           </Select>
-          <Input label="Preço (R$)" type="number" placeholder="850000" value={form.price} onChange={set('price')} />
+          <Select label="Modalidade" value={form.purpose} onChange={set('purpose')}>
+            {Object.entries(PROPERTY_PURPOSES).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
+          </Select>
         </div>
 
-        <Input label="Localização *" placeholder="ex: Moema, São Paulo – SP" value={form.location} onChange={set('location')} />
+        <div className="grid grid-cols-2 gap-3">
+          <Select label="Status do Imóvel" value={form.status} onChange={set('status')}>
+            {Object.entries(PROPERTY_STATUSES).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
+          </Select>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Preço (R$)</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="R$ 850.000"
+              value={formatPriceMask(form.price)}
+              onChange={handlePriceChange}
+              className="w-full px-3.5 py-2.5 rounded-lg border-[1.5px] border-gray-200 font-body text-sm text-navy bg-white focus:outline-none focus:border-gold transition-colors placeholder:text-gray-400"
+            />
+          </div>
+        </div>
+
+        {/* ── Endereço ────────────────────────────────────────────── */}
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Endereço</p>
+          <div className="flex flex-col gap-3">
+            {/* CEP */}
+            <div className="flex gap-2 items-end">
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">CEP</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={9}
+                  placeholder="00000-000"
+                  value={form.cep}
+                  onChange={set('cep')}
+                  onKeyDown={handleCepKeyDown}
+                  className="w-full px-3.5 py-2.5 rounded-lg border-[1.5px] border-gray-200 font-body text-sm text-navy bg-white focus:outline-none focus:border-gold transition-colors placeholder:text-gray-400"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={lookupCep}
+                disabled={cepLoading}
+                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-navy text-white text-sm font-medium hover:bg-navy/80 transition-colors disabled:opacity-50"
+              >
+                {cepLoading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                Buscar
+              </button>
+            </div>
+            {cepError && <p className="text-red-500 text-xs -mt-1">{cepError}</p>}
+
+            {/* Rua + Número */}
+            <div className="grid grid-cols-[1fr_100px] gap-3">
+              <Input label="Rua / Logradouro *" placeholder="Rua das Flores" value={form.street}  onChange={set('street')} />
+              <Input label="Número"           placeholder="123"              value={form.number}  onChange={set('number')} />
+            </div>
+
+            {/* Complemento + Bairro */}
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Complemento (opcional)" placeholder="Apto 42"    value={form.complement}   onChange={set('complement')} />
+              <Input label="Bairro"                  placeholder="Moema"      value={form.neighborhood} onChange={set('neighborhood')} />
+            </div>
+
+            {/* Cidade + Estado + Zona */}
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="Cidade *" placeholder="São Paulo" value={form.city}  onChange={set('city')} />
+              <Input label="UF"     placeholder="SP"         value={form.state} onChange={set('state')} />
+              <Input label="Zona"   placeholder="Zona Sul"   value={form.zone}  onChange={set('zone')} />
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-4 gap-3">
-          {[['bedrooms','Quartos'],['bathrooms','Banheiros'],['area','Área m²'],['parking','Vagas']].map(([k, l]) => (
+          {[['bedrooms', 'Quartos'], ['bathrooms', 'Banheiros'], ['parking', 'Vagas']].map(([k, l]) => (
             <Input key={k} label={l} type="number" min="0" value={form[k]} onChange={set(k)} />
           ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Área do Imóvel m²" type="number" min="0" placeholder="120" value={form.area} onChange={set('area')} />
+          <Input label="Área do Terreno m²" type="number" min="0" placeholder="300" value={form.land_area} onChange={set('land_area')} />
         </div>
 
         <Textarea label="Descrição" placeholder="Descreva o imóvel…" value={form.description} onChange={set('description')} rows={3} />

@@ -6,7 +6,10 @@ import { Spinner } from '@/components/ui/Spinner'
 import { useLeads } from '@/hooks/useLeads'
 
 export function CatalogPage({ properties, loading, onSelectProperty, onAdminClick }) {
-  const [filters, setFilters] = useState({ search: '', type: '', bedrooms: '' })
+  const [filters, setFilters] = useState({
+    search: '', type: '', purpose: '', bedrooms: '', zone: '',
+    minPrice: '', maxPrice: '', minArea: '', maxArea: '', bathrooms: '', parking: '', features: []
+  })
 
   // ── Lead form state ──────────────────────────────────────────────────────
   const { create } = useLeads()
@@ -44,9 +47,26 @@ export function CatalogPage({ properties, loading, onSelectProperty, onAdminClic
     const q = filters.search.toLowerCase()
     if (q && !p.title.toLowerCase().includes(q) && !p.location.toLowerCase().includes(q)) return false
     if (filters.type && p.type !== filters.type) return false
+    if (filters.purpose && p.purpose !== filters.purpose) return false
     if (filters.bedrooms && p.bedrooms < parseInt(filters.bedrooms)) return false
+    if (filters.zone && p.zone !== filters.zone) return false
+
+    // Advanced filters
+    if (filters.minPrice && p.price < parseInt(filters.minPrice.replace(/\D/g, ''))) return false
+    if (filters.maxPrice && p.price > parseInt(filters.maxPrice.replace(/\D/g, ''))) return false
+    if (filters.minArea && p.area < parseInt(filters.minArea.replace(/\D/g, ''))) return false
+    if (filters.maxArea && p.area > parseInt(filters.maxArea.replace(/\D/g, ''))) return false
+    if (filters.bathrooms && p.bathrooms < parseInt(filters.bathrooms)) return false
+    if (filters.parking && p.parking < parseInt(filters.parking)) return false
+    if (filters.features.length > 0) {
+      if (!p.features || !Array.isArray(p.features)) return false
+      const hasAll = filters.features.every(f => p.features.includes(f))
+      if (!hasAll) return false
+    }
     return true
   })
+
+  const availableFeatures = [...new Set(properties.flatMap(p => Array.isArray(p.features) ? p.features : []))].sort()
 
   return (
     <div className="min-h-screen bg-cream">
@@ -69,7 +89,7 @@ export function CatalogPage({ properties, loading, onSelectProperty, onAdminClic
             Encontre o imóvel<br />perfeito para você
           </h1>
           <p className="text-white/70 text-lg mb-8 leading-relaxed">
-            Curadoria exclusiva de imóveis residenciais e comerciais em São Paulo e litoral.
+            Trabalhamos com imóveis residenciais e comerciais em:<br />São José dos Campos e região.
           </p>
           <a href="#catalogo"
             className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-white font-semibold px-8 py-3.5 rounded-xl transition-colors text-base"
@@ -82,7 +102,12 @@ export function CatalogPage({ properties, loading, onSelectProperty, onAdminClic
       {/* ── Filters ───────────────────────────────────────── */}
       <div id="catalogo" className="max-w-6xl mx-auto px-6">
         <div className="-mt-7 mb-12 relative z-10">
-          <PropertyFilters filters={filters} onChange={setFilters} />
+          <PropertyFilters
+            filters={filters}
+            onChange={setFilters}
+            zones={[...new Set(properties.map(p => p.zone).filter(Boolean))].sort()}
+            availableFeatures={availableFeatures}
+          />
         </div>
 
         {/* ── Grid ────────────────────────────────────────── */}

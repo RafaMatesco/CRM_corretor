@@ -4,8 +4,22 @@ export const BROKER_CRECI    = import.meta.env.VITE_BROKER_CRECI    ?? '12345-SP
 export const BROKER_EMAIL    = import.meta.env.VITE_BROKER_EMAIL    ?? 'corretor@imobiliaria.com'
 
 export const PROPERTY_TYPES = [
-  'Apartamento', 'Casa', 'Studio', 'Cobertura', 'Terreno', 'Sala Comercial', 'Galpão',
+  'Apartamento', 'Casa', 'Studio', 'Cobertura', 'Terreno', 'Sala Comercial', 'Galpão', 'Chácara', 'Sítio'
 ]
+
+export const PROPERTY_STATUSES = {
+  disponivel:  { label: 'Disponível',  color: 'green',  banner: null },
+  vendido:     { label: 'Vendido',     color: 'red',    banner: 'VENDIDO' },
+  alugado:     { label: 'Alugado',     color: 'purple', banner: 'ALUGADO' },
+  desistencia: { label: 'Desistência', color: 'amber',  banner: null },
+  pausado:     { label: 'Pausado',     color: 'gray',   banner: null },
+  outros:      { label: 'Outros',      color: 'navy',   banner: null },
+}
+
+export const PROPERTY_PURPOSES = {
+  venda:   { label: 'Venda',   color: 'navy'  },
+  locacao: { label: 'Locação', color: 'amber' },
+}
 
 export const LEAD_STATUSES = {
   novo:              { label: 'Novo',              color: 'blue'  },

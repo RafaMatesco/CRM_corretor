@@ -6,8 +6,47 @@ export function PublicNav({ onAdminClick }) {
     <nav className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center">
         {/* Logo */}
-        <a href="#" className="font-display text-2xl font-bold text-navy">
-          Imo<span className="text-gold">CRM</span>
+        <a href="#" className="flex flex-col items-center leading-none select-none">
+          <span
+            style={{
+              fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+              fontWeight: 700,
+              fontSize: '1.45rem',
+              letterSpacing: '0.18em',
+              color: '#1a2644',
+              lineHeight: 1,
+              textTransform: 'uppercase',
+            }}
+          >
+            Imperium
+          </span>
+          <span
+            style={{
+              fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+              fontWeight: 700,
+              fontSize: '1.45rem',
+              letterSpacing: '0.18em',
+              color: '#1a2644',
+              lineHeight: 1,
+              textTransform: 'uppercase',
+            }}
+          >
+            Realty
+          </span>
+          <span
+            style={{
+              fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+              fontWeight: 400,
+              fontSize: '0.55rem',
+              letterSpacing: '0.35em',
+              color: '#5a6a8a',
+              lineHeight: 1,
+              marginTop: '4px',
+              textTransform: 'uppercase',
+            }}
+          >
+            Negócios Imobiliários
+          </span>
         </a>
 
         {/* Links */}

@@ -7,7 +7,7 @@ export const IS_DEMO = !supabaseUrl || !supabaseKey
 
 if (IS_DEMO) {
   console.info(
-    '[ImoCRM] Rodando em modo DEMO — dados mockados, sem Supabase.\n' +
+    '[Imperium] Rodando em modo DEMO — dados mockados, sem Supabase.\n' +
     'Para usar o backend real, copie .env.example → .env e preencha as variáveis.'
   )
 }else{

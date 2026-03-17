@@ -1,4 +1,4 @@
-# ImoCRM — CRM Imobiliário Zero Cost
+# Imperium — CRM Imobiliário Zero Cost
 
 > CRM completo para corretores: portal público de imóveis + painel administrativo.  
 > Stack: **React 18 · Tailwind CSS · Supabase · Vite**  

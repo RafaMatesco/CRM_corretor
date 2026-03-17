@@ -1,5 +1,5 @@
 -- ============================================================
---  ImoCRM – Supabase Schema
+--  Imperium – Supabase Schema
 --  Execute no SQL Editor do seu projeto Supabase
 -- ============================================================
 

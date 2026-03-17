@@ -107,7 +107,7 @@ export function CatalogPage({ properties, loading, onSelectProperty, onAdminClic
 
       <footer className="text-center py-10 text-sm text-gray-400 bg-cream-dark">
         <p className="font-display text-xl text-navy mb-2">Imo<span className="text-gold">CRM</span></p>
-        © 2025 ImoCRM · Todos os direitos reservados
+        © 2025 Imperium · Todos os direitos reservados
       </footer>
 
       {/* WhatsApp FAB */}

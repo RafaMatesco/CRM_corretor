@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #FAF8F3;
+    color: #0F1B2D;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #F0EDE4; }
+  ::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 3px; }
+}
+
+@layer components {
+  /* ── Toggle switch ─────────────────────── */
+  .toggle-wrapper { position: relative; display: inline-flex; align-items: center; cursor: pointer; gap: 10px; }
+  .toggle-wrapper input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track {
+    width: 44px; height: 24px; background: #E5E2D8;
+    border-radius: 12px; transition: background 0.2s;
+    border: 1.5px solid rgba(15,27,45,0.12); flex-shrink: 0;
+    position: relative;
+  }
+  .toggle-track::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; top: 2px; left: 2px;
+    transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle-wrapper input:checked ~ .toggle-track { background: #C9A84C; border-color: #C9A84C; }
+  .toggle-wrapper input:checked ~ .toggle-track::before { transform: translateX(20px); }
+
+  /* ── Animations ────────────────────────── */
+  .fade-in { animation: fadeIn 0.3s ease; }
+  .slide-up { animation: slideUp 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+}

@@ -3,6 +3,16 @@ import { supabase, IS_DEMO } from '@/lib/supabase'
 import { MOCK_PROPERTIES } from '@/lib/mockData'
 import { slugify } from '@/lib/utils'
 
+const STORAGE_BUCKET = 'property-images'
+
+/** Extracts the storage path from a Supabase public URL, returns null if not a storage URL. */
+function storagePathFromUrl(url) {
+  if (!url) return null
+  const marker = `/${STORAGE_BUCKET}/`
+  const idx = url.indexOf(marker)
+  return idx === -1 ? null : url.slice(idx + marker.length)
+}
+
 /**
  * Full CRUD hook for the `properties` table.
  * In demo mode it works against local state; when Supabase is configured
@@ -63,10 +73,20 @@ export function useProperties({ onlyPublished = false } = {}) {
       setProperties(prev => prev.filter(p => p.id !== id))
       return { error: null }
     }
+
+    // Delete images from Storage before removing the DB record
+    const prop = properties.find(p => p.id === id)
+    if (prop?.images?.length) {
+      const paths = prop.images.map(storagePathFromUrl).filter(Boolean)
+      if (paths.length) {
+        await supabase.storage.from(STORAGE_BUCKET).remove(paths)
+      }
+    }
+
     const { error } = await supabase.from('properties').delete().eq('id', id)
     if (!error) setProperties(prev => prev.filter(p => p.id !== id))
     return { error }
-  }, [])
+  }, [properties])
 
   // ── Toggle publish ─────────────────────────────────────────────────────
   const togglePublish = useCallback(async (id) => {

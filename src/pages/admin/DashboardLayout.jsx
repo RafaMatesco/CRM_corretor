@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { AdminNav }      from '@/components/admin/AdminNav'
-import { Sidebar }       from '@/components/admin/Sidebar'
-import { Toast }         from '@/components/ui/Toast'
-import { OverviewPage }  from './OverviewPage'
+import { AdminNav } from '@/components/admin/AdminNav'
+import { Sidebar } from '@/components/admin/Sidebar'
+import { Toast } from '@/components/ui/Toast'
+import { OverviewPage } from './OverviewPage'
 import { PropertiesPage } from './PropertiesPage'
-import { LeadsPage }     from './LeadsPage'
+import { LeadsPage } from './LeadsPage'
 import { AnalyticsPage } from './AnalyticsPage'
 
 export function DashboardLayout({
@@ -21,7 +21,7 @@ export function DashboardLayout({
   onDeleteLead,
 }) {
   const [section, setSection] = useState('overview')
-  const [toast, setToast]     = useState(null)
+  const [toast, setToast] = useState(null)
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
@@ -31,24 +31,23 @@ export function DashboardLayout({
   const newLeadsCount = leads.filter((l) => l.status === 'novo').length
 
   const content = {
-    overview:   <OverviewPage   properties={properties} leads={leads} />,
+    overview: <OverviewPage properties={properties} leads={leads} />,
     properties: <PropertiesPage
-                  properties={properties}
-                  onCreate={onCreate}
-                  onUpdate={onUpdate}
-                  onDelete={onDelete}
-                  onTogglePublish={onTogglePublish}
-                  showToast={showToast}
-                />,
-    leads:      <LeadsPage
-                  leads={leads}
-                  onUpdateStatus={onUpdateLeadStatus}
-                  onDelete={onDeleteLead}
-                  showToast={showToast}
-                />,
-    analytics:  <AnalyticsPage properties={properties} />,
+      properties={properties}
+      onCreate={onCreate}
+      onUpdate={onUpdate}
+      onDelete={onDelete}
+      onTogglePublish={onTogglePublish}
+      showToast={showToast}
+    />,
+    leads: <LeadsPage
+      leads={leads}
+      onUpdateStatus={onUpdateLeadStatus}
+      onDelete={onDeleteLead}
+      showToast={showToast}
+    />,
+    analytics: <AnalyticsPage properties={properties} leads={leads} />,
   }
-
   return (
     <div className="min-h-screen bg-cream flex flex-col">
       <AdminNav user={user} onLogout={onLogout} onViewPublic={onViewPublic} />

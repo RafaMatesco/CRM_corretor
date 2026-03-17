@@ -1,11 +1,44 @@
 import { useState } from 'react'
-import { PublicNav }        from '@/components/public/PublicNav'
-import { PropertyCard }     from '@/components/public/PropertyCard'
-import { PropertyFilters }  from '@/components/public/PropertyFilters'
-import { Spinner }          from '@/components/ui/Spinner'
+import { PublicNav } from '@/components/public/PublicNav'
+import { PropertyCard } from '@/components/public/PropertyCard'
+import { PropertyFilters } from '@/components/public/PropertyFilters'
+import { Spinner } from '@/components/ui/Spinner'
+import { useLeads } from '@/hooks/useLeads'
 
 export function CatalogPage({ properties, loading, onSelectProperty, onAdminClick }) {
   const [filters, setFilters] = useState({ search: '', type: '', bedrooms: '' })
+
+  // ── Lead form state ──────────────────────────────────────────────────────
+  const { create } = useLeads()
+  const [form, setForm] = useState({ name: '', phone: '', message: '' })
+  const [formStatus, setFormStatus] = useState('idle') // 'idle' | 'loading' | 'success' | 'error'
+  const [formError, setFormError] = useState('')
+
+  function handleFormChange(e) {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  async function handleSubmitLead(e) {
+    e.preventDefault()
+    if (!form.name.trim() || !form.phone.trim()) {
+      setFormError('Por favor, preencha seu nome e WhatsApp.')
+      return
+    }
+    setFormError('')
+    setFormStatus('loading')
+    const { error } = await create({
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      message: form.message.trim() || null,
+    })
+    if (error) {
+      setFormStatus('error')
+      setFormError('Ocorreu um erro ao enviar. Tente novamente.')
+    } else {
+      setFormStatus('success')
+      setForm({ name: '', phone: '', message: '' })
+    }
+  }
 
   const filtered = properties.filter((p) => {
     const q = filters.search.toLowerCase()
@@ -94,14 +127,52 @@ export function CatalogPage({ properties, loading, onSelectProperty, onAdminClic
               <span>✓ Atendimento personalizado</span>
             </div>
           </div>
-          <div className="flex flex-col gap-3">
-            <input className="w-full px-4 py-3 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="Seu nome" />
-            <input className="w-full px-4 py-3 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="WhatsApp" />
-            <textarea className="w-full px-4 py-3 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-gold resize-none" rows={3} placeholder="Descreva o imóvel ideal…" />
-            <button className="w-full bg-gold hover:bg-gold-dark text-white font-semibold py-3.5 rounded-xl transition-colors">
-              Enviar mensagem
-            </button>
-          </div>
+          <form className="flex flex-col gap-3" onSubmit={handleSubmitLead} noValidate>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleFormChange}
+              className="w-full px-4 py-3 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-gold"
+              placeholder="Seu nome *"
+            />
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleFormChange}
+              className="w-full px-4 py-3 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-gold"
+              placeholder="WhatsApp *"
+            />
+            <textarea
+              name="message"
+              value={form.message}
+              onChange={handleFormChange}
+              className="w-full px-4 py-3 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
+              rows={3}
+              placeholder="Descreva o imóvel ideal…"
+            />
+
+            {formError && (
+              <p className="text-red-400 text-sm">{formError}</p>
+            )}
+
+            {formStatus === 'success' ? (
+              <p className="text-green-400 font-semibold text-sm text-center py-3">
+                ✓ Mensagem enviada! Entraremos em contato em breve.
+              </p>
+            ) : (
+              <button
+                type="submit"
+                disabled={formStatus === 'loading'}
+                className="w-full bg-gold hover:bg-gold-dark text-white font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {formStatus === 'loading' ? (
+                  <><Spinner size={18} /> Enviando…</>
+                ) : (
+                  'Enviar mensagem'
+                )}
+              </button>
+            )}
+          </form>
         </div>
       </section>
 

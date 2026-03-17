@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Lock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Input }  from '@/components/ui/Input'
+import { Input } from '@/components/ui/Input'
 
 export function LoginPage({ onLogin }) {
-  const [email, setEmail]     = useState('demo@imocrm.com')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState()
+  const [password, setPassword] = useState()
   const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = async () => {
     if (!email || !password) return
@@ -61,9 +61,6 @@ export function LoginPage({ onLogin }) {
           <Lock size={15} /> {loading ? 'Entrando…' : 'Entrar no Painel'}
         </Button>
 
-        <div className="mt-5 bg-cream rounded-xl p-3 text-center text-xs text-gray-500">
-          Demo: <strong>demo@imocrm.com</strong> / <strong>demo1234</strong>
-        </div>
       </div>
     </div>
   )

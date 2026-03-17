@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Trash2 }   from 'lucide-react'
-import { Badge }    from '@/components/ui/Badge'
-import { Button }   from '@/components/ui/Button'
+import { Trash2 } from 'lucide-react'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { LEAD_STATUSES, WHATSAPP_NUMBER } from '@/lib/constants'
 import { formatDate, initials, whatsappUrl } from '@/lib/utils'
+import { useLeads } from '@/hooks/useLeads'
 
 const STATUS_ORDER = Object.keys(LEAD_STATUSES)
 
 export function LeadsPage({ leads, onUpdateStatus, onDelete, showToast }) {
   const [filter, setFilter] = useState('todos')
+
 
   const visible = filter === 'todos' ? leads : leads.filter((l) => l.status === filter)
 

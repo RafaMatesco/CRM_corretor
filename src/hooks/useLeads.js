@@ -28,9 +28,9 @@ export function useLeads() {
       setLeads(prev => [newLead, ...prev])
       return { data: newLead, error: null }
     }
-    const { data, error } = await supabase.from('leads').insert(row).select().single()
-    if (!error) setLeads(prev => [data, ...prev])
-    return { data, error }
+    const { error } = await supabase.from('leads').insert(row)
+    if (!error) setLeads(prev => [{ ...row, id: String(Date.now()) }, ...prev])
+    return { data: error ? null : row, error }
   }, [])
 
   const updateStatus = useCallback(async (id, status) => {

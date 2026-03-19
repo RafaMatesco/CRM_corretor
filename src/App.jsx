@@ -7,7 +7,7 @@ import { PropertyDetailPage } from '@/pages/public/PropertyDetailPage'
 import { LoginPage } from '@/pages/admin/LoginPage'
 import { DashboardLayout } from '@/pages/admin/DashboardLayout'
 import { Spinner } from '@/components/ui/Spinner'
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 /**
  * View states:

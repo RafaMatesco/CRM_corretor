@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useAuth }          from '@/hooks/useAuth'
-import { useProperties }    from '@/hooks/useProperties'
-import { useLeads }         from '@/hooks/useLeads'
-import { CatalogPage }      from '@/pages/public/CatalogPage'
+import { useAuth } from '@/hooks/useAuth'
+import { useProperties } from '@/hooks/useProperties'
+import { useLeads } from '@/hooks/useLeads'
+import { CatalogPage } from '@/pages/public/CatalogPage'
 import { PropertyDetailPage } from '@/pages/public/PropertyDetailPage'
-import { LoginPage }        from '@/pages/admin/LoginPage'
-import { DashboardLayout }  from '@/pages/admin/DashboardLayout'
-import { Spinner }          from '@/components/ui/Spinner'
+import { LoginPage } from '@/pages/admin/LoginPage'
+import { DashboardLayout } from '@/pages/admin/DashboardLayout'
+import { Spinner } from '@/components/ui/Spinner'
+import { Analytics } from "@vercel/analytics/next"
 
 /**
  * View states:
@@ -35,7 +36,7 @@ export default function App() {
     remove: removeLead,
   } = useLeads()
 
-  const [view, setView]             = useState('public')   // 'public' | 'detail' | 'login' | 'admin'
+  const [view, setView] = useState('public')   // 'public' | 'detail' | 'login' | 'admin'
   const [selectedProperty, setSelected] = useState(null)
 
   // ── Auth ──────────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ export default function App() {
   // ── Render ────────────────────────────────────────────────────────────
   return (
     <>
+      <Analytics />
       {view === 'public' && (
         <CatalogPage
           properties={properties.filter((p) => p.is_published)}

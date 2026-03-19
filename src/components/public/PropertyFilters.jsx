@@ -196,6 +196,12 @@ export function PropertyFilters({ filters, onChange, zones = [], availableFeatur
                   const isChecked = filters.features.includes(feat)
                   return (
                     <label key={feat} className="flex items-start gap-2 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={isChecked} 
+                        onChange={() => toggleFeature(feat)} 
+                      />
                       <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isChecked ? 'bg-gold border-gold text-white' : 'border-gray-300 bg-white group-hover:border-gold'}`}>
                         {isChecked && <Check size={12} strokeWidth={3} />}
                       </div>

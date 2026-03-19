@@ -36,6 +36,24 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
     showToast('Imóvel removido.')
   }
 
+  const deleteFeatureGlobally = async (featureName) => {
+    if (!confirm(`Remover "${featureName}" de todos os imóveis que possuem essa tag?`)) return
+    
+    let count = 0
+    for (const p of properties) {
+      if (Array.isArray(p.features) && p.features.includes(featureName)) {
+        await onUpdate(p.id, {
+          ...p,
+          features: p.features.filter(f => f !== featureName)
+        })
+        count++
+      }
+    }
+    showToast(`Tag removida de ${count} imóvel(is).`)
+  }
+
+  const uniqueFeatures = [...new Set(properties.flatMap(p => Array.isArray(p.features) ? p.features : []))].sort()
+
   return (
     <div className="fade-in">
       {/* Header */}
@@ -153,7 +171,9 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
       {showForm && (
         <PropertyForm
           property={editing}
+          existingFeatures={uniqueFeatures}
           onSave={handleSave}
+          onDeleteFeature={deleteFeatureGlobally}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
       )}

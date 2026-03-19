@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Save, Upload, X, Image, Loader2, Search } from 'lucide-react'
+import { Save, Upload, X, Image, Loader2, Search, Plus, Check, SlidersHorizontal, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
 import { Toggle } from '@/components/ui/Toggle'
@@ -15,7 +15,7 @@ const BLANK = {
   images: [], owner_name: '', owner_phone: '',
 }
 
-export function PropertyForm({ property, onSave, onClose }) {
+export function PropertyForm({ property, existingFeatures = [], onSave, onClose, onDeleteFeature }) {
   const { uploadImage, deleteImage } = useStorage()
   const fileRef = useRef(null)
 
@@ -23,12 +23,35 @@ export function PropertyForm({ property, onSave, onClose }) {
     ? {
       ...property,
       features: Array.isArray(property.features)
-        ? property.features.join(', ')
-        : property.features,
+        ? property.features
+        : (typeof property.features === 'string' ? property.features.split(',').map(f => f.trim()).filter(Boolean) : []),
       images: property.images ?? [],
     }
-    : BLANK
+    : { ...BLANK, features: [] }
   )
+
+  // Features Checkboxes State
+  const [showFeatures, setShowFeatures] = useState(false)
+  const [tagInput, setTagInput] = useState('')
+
+  const addTag = (tag) => {
+    const t = tag.trim()
+    if (t && !form.features.includes(t)) {
+      setForm(f => ({ ...f, features: [...f.features, t] }))
+    }
+    setTagInput('')
+  }
+
+  const removeTag = (tag) => {
+    setForm(f => ({ ...f, features: f.features.filter(fc => fc !== tag) }))
+  }
+
+  const handleTagKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addTag(tagInput)
+    }
+  }
 
   // Track which URLs were added during this session (so we can delete them on cancel)
   const [uploadingCount, setUploadingCount] = useState(0)
@@ -37,26 +60,26 @@ export function PropertyForm({ property, onSave, onClose }) {
 
   // ── CEP lookup via ViaCEP ────────────────────────────────────────
   const [cepLoading, setCepLoading] = useState(false)
-  const [cepError,   setCepError]   = useState('')
+  const [cepError, setCepError] = useState('')
 
   const lookupCep = async () => {
     const raw = form.cep.replace(/\D/g, '')
     if (raw.length !== 8) { setCepError('CEP deve ter 8 dígitos'); return }
     setCepLoading(true); setCepError('')
     try {
-      const res  = await fetch(`https://viacep.com.br/ws/${raw}/json/`)
+      const res = await fetch(`https://viacep.com.br/ws/${raw}/json/`)
       const data = await res.json()
       if (data.erro) { setCepError('CEP não encontrado'); return }
       setForm((f) => ({
         ...f,
-        street:       data.logradouro ?? f.street,
-        neighborhood: data.bairro     ?? f.neighborhood,
-        city:         data.localidade ?? f.city,
-        state:        data.uf         ?? f.state,
-        cep:          raw,
+        street: data.logradouro ?? f.street,
+        neighborhood: data.bairro ?? f.neighborhood,
+        city: data.localidade ?? f.city,
+        state: data.uf ?? f.state,
+        cep: raw,
       }))
     } catch { setCepError('Erro ao buscar CEP') }
-    finally  { setCepLoading(false) }
+    finally { setCepLoading(false) }
   }
 
   const handleCepKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); lookupCep() } }
@@ -126,9 +149,7 @@ export function PropertyForm({ property, onSave, onClose }) {
       area: parseInt(form.area) || 0,
       land_area: parseInt(form.land_area) || 0,
       parking: parseInt(form.parking) || 0,
-      features: typeof form.features === 'string'
-        ? form.features.split(',').map((f) => f.trim()).filter(Boolean)
-        : form.features,
+      features: Array.isArray(form.features) ? form.features : [],
       owner_name: form.owner_name?.trim() || null,
       owner_phone: form.owner_phone?.trim() || null,
     })
@@ -232,21 +253,21 @@ export function PropertyForm({ property, onSave, onClose }) {
 
             {/* Rua + Número */}
             <div className="grid grid-cols-[1fr_100px] gap-3">
-              <Input label="Rua / Logradouro *" placeholder="Rua das Flores" value={form.street}  onChange={set('street')} />
-              <Input label="Número"           placeholder="123"              value={form.number}  onChange={set('number')} />
+              <Input label="Rua / Logradouro *" placeholder="Rua das Flores" value={form.street} onChange={set('street')} />
+              <Input label="Número" placeholder="123" value={form.number} onChange={set('number')} />
             </div>
 
             {/* Complemento + Bairro */}
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Complemento (opcional)" placeholder="Apto 42"    value={form.complement}   onChange={set('complement')} />
-              <Input label="Bairro"                  placeholder="Moema"      value={form.neighborhood} onChange={set('neighborhood')} />
+              <Input label="Complemento (opcional)" placeholder="Apto 42" value={form.complement} onChange={set('complement')} />
+              <Input label="Bairro" placeholder="Moema" value={form.neighborhood} onChange={set('neighborhood')} />
             </div>
 
             {/* Cidade + Estado + Zona */}
             <div className="grid grid-cols-3 gap-3">
-              <Input label="Cidade *" placeholder="São Paulo" value={form.city}  onChange={set('city')} />
-              <Input label="UF"     placeholder="SP"         value={form.state} onChange={set('state')} />
-              <Input label="Zona"   placeholder="Zona Sul"   value={form.zone}  onChange={set('zone')} />
+              <Input label="Cidade *" placeholder="São Paulo" value={form.city} onChange={set('city')} />
+              <Input label="UF" placeholder="SP" value={form.state} onChange={set('state')} />
+              <Input label="Zona" placeholder="Zona Sul" value={form.zone} onChange={set('zone')} />
             </div>
           </div>
         </div>
@@ -262,8 +283,92 @@ export function PropertyForm({ property, onSave, onClose }) {
           <Input label="Área do Terreno m²" type="number" min="0" placeholder="300" value={form.land_area} onChange={set('land_area')} />
         </div>
 
-        <Textarea label="Descrição" placeholder="Descreva o imóvel…" value={form.description} onChange={set('description')} rows={3} />
-        <Input label="Diferenciais (separados por vírgula)" placeholder="Piscina, Academia, Varanda Grill" value={form.features} onChange={set('features')} />
+        <Textarea label="Descrição" placeholder="Descreva o imóvel…" value={form.description} onChange={set('description')} rows={8} />
+        
+        {/* ── Diferenciais e Comodidades (Checkboxes) ──────────────── */}
+        <div className="border border-gray-200 rounded-xl px-4 py-3 bg-white mt-1">
+          <button
+            type="button"
+            className="flex items-center justify-between w-full text-left focus:outline-none group"
+            onClick={() => setShowFeatures(!showFeatures)}
+          >
+            <span className="text-sm font-semibold text-navy flex items-center gap-2">
+              <SlidersHorizontal size={14} className="text-gold" /> Diferenciais e Comodidades 
+              {form.features.length > 0 && <span className="bg-navy text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">{form.features.length}</span>}
+            </span>
+            {showFeatures ? <ChevronUp size={16} className="text-gray-400 group-hover:text-navy transition-colors" /> : <ChevronDown size={16} className="text-gray-400 group-hover:text-navy transition-colors" />}
+          </button>
+          
+          {showFeatures && (
+            <div className="pt-4 mt-3 border-t border-gray-100 flex flex-col gap-5 animate-in slide-in-from-top-2">
+              {/* Checkboxes grid */}
+              {existingFeatures.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-3 gap-x-4">
+                  {existingFeatures.map(feat => {
+                    const isChecked = form.features.includes(feat)
+                    return (
+                      <div key={feat} className="flex items-center gap-1 group">
+                        <label className="flex items-start gap-2 cursor-pointer flex-1">
+                          <input 
+                            type="checkbox" 
+                            className="hidden" 
+                            checked={isChecked} 
+                            onChange={() => {
+                              if (isChecked) removeTag(feat)
+                              else addTag(feat)
+                            }} 
+                          />
+                          <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isChecked ? 'bg-gold border-gold text-white' : 'border-gray-300 bg-white group-hover:border-gold'}`}>
+                            {isChecked && <Check size={12} strokeWidth={3} />}
+                          </div>
+                          <span className="text-sm text-gray-600 select-none line-clamp-1" title={feat}>{feat}</span>
+                        </label>
+                        {onDeleteFeature && (
+                          <button 
+                            type="button" 
+                            onClick={(e) => { e.preventDefault(); onDeleteFeature(feat); }}
+                            className="opacity-0 lg:opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all rounded-md hover:bg-red-50"
+                            title="Apagar de todos os imóveis"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Criar Novo Diferencial</span>
+                <div className="flex gap-2">
+                  <input 
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Ex: Varanda Gourmet..."
+                    className="w-full px-3 py-2 rounded-lg border-[1.5px] border-gray-200 text-sm focus:outline-none focus:border-gold transition-colors"
+                  />
+                  <Button variant="secondary" onClick={() => addTag(tagInput)} type="button" className="shrink-0 gap-1.5 px-4 h-auto">
+                    <Plus size={16} /> Criar
+                  </Button>
+                </div>
+              </div>
+
+              {/* Any newly added tags not in existingFeatures */}
+              {form.features.filter(f => !existingFeatures.includes(f)).length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-50">
+                  <span className="w-full text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Acabaram de ser criados:</span>
+                  {form.features.filter(f => !existingFeatures.includes(f)).map(f => (
+                    <span key={f} className="flex items-center gap-1.5 bg-gold/10 border border-gold/20 text-navy text-xs px-2.5 py-1 rounded-full">
+                      {f} <X size={12} className="cursor-pointer text-gray-400 hover:text-red-500 transition-colors" onClick={() => removeTag(f)} />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="border-t border-gray-100 pt-4 mt-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Dados do Proprietário</p>

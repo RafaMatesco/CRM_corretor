@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useProperties } from '@/hooks/useProperties'
 import { useLeads } from '@/hooks/useLeads'
@@ -36,8 +36,49 @@ export default function App() {
     remove: removeLead,
   } = useLeads()
 
-  const [view, setView] = useState('public')   // 'public' | 'detail' | 'login' | 'admin'
+  const [view, setView] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('property') ? 'detail' : 'public'
+  })
   const [selectedProperty, setSelected] = useState(null)
+
+  // ── Handle Initial URL ──────────────────────────────────────────────────
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const propertyId = params.get('property')
+    if (propertyId && properties.length > 0 && !selectedProperty) {
+      const prop = properties.find(p => String(p.id) === propertyId)
+      if (prop) {
+        setSelected(prop)
+        setView('detail')
+      } else {
+        // If property not found, clear URL and return to public
+        setView('public')
+        const url = new URL(window.location)
+        url.searchParams.delete('property')
+        window.history.replaceState({}, '', url)
+      }
+    }
+  }, [properties, selectedProperty])
+
+  // Handle browser back/forward buttons
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search)
+      const propertyId = params.get('property')
+      if (propertyId && properties.length > 0) {
+        const prop = properties.find(p => String(p.id) === propertyId)
+        if (prop) {
+          setSelected(prop)
+          setView('detail')
+        }
+      } else {
+        setView('public')
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [properties])
 
   // ── Auth ──────────────────────────────────────────────────────────────
   const handleLogin = async (email, password) => {
@@ -56,6 +97,16 @@ export default function App() {
     setSelected(property)
     setView('detail')
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    const url = new URL(window.location)
+    url.searchParams.set('property', property.id)
+    window.history.pushState({}, '', url)
+  }
+
+  const goBackToPublic = () => {
+    setView('public')
+    const url = new URL(window.location)
+    url.searchParams.delete('property')
+    window.history.pushState({}, '', url)
   }
 
   const handleNewLead = async (payload) => {
@@ -92,7 +143,7 @@ export default function App() {
       {view === 'detail' && selectedProperty && (
         <PropertyDetailPage
           property={selectedProperty}
-          onBack={() => setView('public')}
+          onBack={goBackToPublic}
           onAdminClick={() => user ? setView('admin') : setView('login')}
           onLead={handleNewLead}
           onRecordView={recordView}

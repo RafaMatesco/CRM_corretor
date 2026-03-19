@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Eye, Info } from 'lucide-react'
 import { PropertyForm } from '@/components/admin/PropertyForm'
+import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { Toggle } from '@/components/ui/Toggle'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +12,7 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [viewingDetails, setViewingDetails] = useState(null)
 
   const filtered = properties.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -93,8 +95,14 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
                     {(() => { const s = PROPERTY_STATUSES[p.status ?? 'disponivel']; return <Badge color={s.color}>{s.label}</Badge> })()}
                   </td>
                   <td className="px-4 py-3 font-display font-semibold text-navy">{formatPrice(p.price)}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">
-                    {p.bedrooms > 0 && `${p.bedrooms}q · `}{p.bathrooms > 0 && `${p.bathrooms}b · `}{p.area > 0 && `${p.area}m² imóvel`}{p.land_area > 0 && ` · ${p.land_area}m² terreno`}
+                  <td className="px-4 py-3">
+                    <button
+                      title="Ver Detalhes"
+                      onClick={() => setViewingDetails(p)}
+                      className="p-1.5 rounded-md hover:bg-cream-dark text-gray-400 hover:text-navy transition-colors flex items-center justify-center w-8 h-8"
+                    >
+                      <Info size={16} />
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -148,6 +156,70 @@ export function PropertiesPage({ properties, onCreate, onUpdate, onDelete, onTog
           onSave={handleSave}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
+      )}
+
+      {viewingDetails && (
+        <Modal
+          open
+          onClose={() => setViewingDetails(null)}
+          title="Detalhes do Imóvel"
+          maxWidth="max-w-md"
+        >
+          <div className="flex flex-col gap-4 text-sm text-gray-600">
+            {/* Proprietário */}
+            <div>
+              <p className="font-semibold text-navy mb-1 text-xs uppercase tracking-wide">Proprietário</p>
+              <div className="bg-cream-dark p-3 rounded-lg flex flex-col gap-1">
+                <p><strong>Nome:</strong> {viewingDetails.owner_name || 'Não informado'}</p>
+                <p className="flex items-center justify-between"> <div><strong>Contato:</strong> {viewingDetails.owner_phone || 'Não informado'}</div> {viewingDetails.owner_phone && (
+                  <a
+                    href={`https://wa.me/${viewingDetails.owner_phone ?? '5511999999999'}?`}
+                    target="_blank" rel="noreferrer"
+                    className="w-7 h-7 rounded-full bg-[#25D366] flex items-center justify-center text-l shadow-lg hover:scale-110 transition-transform z-50"
+                    aria-label="WhatsApp"
+                  >
+                    💬
+                  </a>
+                )}</p>
+
+
+              </div>
+            </div>
+
+            {/* Estrutura */}
+            <div>
+              <p className="font-semibold text-navy mb-1 text-xs uppercase tracking-wide">Estrutura</p>
+              <div className="grid grid-cols-2 gap-2 bg-cream p-3 rounded-lg">
+                <p><strong>Quartos:</strong> {viewingDetails.bedrooms}</p>
+                <p><strong>Banheiros:</strong> {viewingDetails.bathrooms}</p>
+                <p><strong>Vagas:</strong> {viewingDetails.parking}</p>
+                <p><strong>Área Útil:</strong> {viewingDetails.area}m²</p>
+                <p><strong>Terreno:</strong> {viewingDetails.land_area}m²</p>
+              </div>
+            </div>
+
+            {/* Valores */}
+            <div>
+              <p className="font-semibold text-navy mb-1 text-xs uppercase tracking-wide">Valores Adicionais</p>
+              <div className="grid grid-cols-2 gap-2 bg-cream p-3 rounded-lg">
+                <p><strong>Condomínio:</strong> {viewingDetails.condominium ? formatPrice(viewingDetails.condominium) : '-'}</p>
+                <p><strong>IPTU:</strong> {viewingDetails.iptu ? formatPrice(viewingDetails.iptu) : '-'}</p>
+              </div>
+            </div>
+
+            {/* Atualização */}
+            <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
+              <span>Última atualização:</span>
+              <span className="font-medium text-gray-600">
+                {viewingDetails.updated_at ? new Date(viewingDetails.updated_at).toLocaleString('pt-BR') : 'Desconhecida'}
+              </span>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button variant="ghost" onClick={() => setViewingDetails(null)}>Fechar</Button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   )

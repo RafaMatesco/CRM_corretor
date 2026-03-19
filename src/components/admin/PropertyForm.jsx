@@ -8,11 +8,11 @@ import { PROPERTY_TYPES, PROPERTY_STATUSES, PROPERTY_PURPOSES } from '@/lib/cons
 import { useStorage } from '@/hooks/useStorage'
 
 const BLANK = {
-  title: '', type: 'Apartamento', status: 'disponivel', purpose: 'venda', price: '',
+  title: '', type: 'Apartamento', status: 'disponivel', purpose: 'venda', price: '', condominium: '', iptu: '',
   cep: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: 'SP', zone: '',
   bedrooms: '', bathrooms: '', area: '', land_area: '', parking: '',
   description: '', features: '', is_published: false,
-  images: [],
+  images: [], owner_name: '', owner_phone: '',
 }
 
 export function PropertyForm({ property, onSave, onClose }) {
@@ -71,6 +71,14 @@ export function PropertyForm({ property, onSave, onClose }) {
     const digits = e.target.value.replace(/\D/g, '')
     setForm((f) => ({ ...f, price: digits }))
   }
+  const handleCondoChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, '')
+    setForm((f) => ({ ...f, condominium: digits }))
+  }
+  const handleIptuChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, '')
+    setForm((f) => ({ ...f, iptu: digits }))
+  }
   const valid = form.title.trim() && (form.street.trim() || form.city.trim())
 
   // ── Image upload ────────────────────────────────────────────────────────
@@ -111,6 +119,8 @@ export function PropertyForm({ property, onSave, onClose }) {
       location,
       zone,
       price: parseInt(form.price) || 0,
+      condominium: parseInt(form.condominium) || 0,
+      iptu: parseInt(form.iptu) || 0,
       bedrooms: parseInt(form.bedrooms) || 0,
       bathrooms: parseInt(form.bathrooms) || 0,
       area: parseInt(form.area) || 0,
@@ -119,6 +129,8 @@ export function PropertyForm({ property, onSave, onClose }) {
       features: typeof form.features === 'string'
         ? form.features.split(',').map((f) => f.trim()).filter(Boolean)
         : form.features,
+      owner_name: form.owner_name?.trim() || null,
+      owner_phone: form.owner_phone?.trim() || null,
     })
   }
 
@@ -157,6 +169,31 @@ export function PropertyForm({ property, onSave, onClose }) {
               placeholder="R$ 850.000"
               value={formatPriceMask(form.price)}
               onChange={handlePriceChange}
+              className="w-full px-3.5 py-2.5 rounded-lg border-[1.5px] border-gray-200 font-body text-sm text-navy bg-white focus:outline-none focus:border-gold transition-colors placeholder:text-gray-400"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Condomínio (R$)</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="R$ 800"
+              value={formatPriceMask(form.condominium || '')}
+              onChange={handleCondoChange}
+              className="w-full px-3.5 py-2.5 rounded-lg border-[1.5px] border-gray-200 font-body text-sm text-navy bg-white focus:outline-none focus:border-gold transition-colors placeholder:text-gray-400"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">IPTU (R$)</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="R$ 150"
+              value={formatPriceMask(form.iptu || '')}
+              onChange={handleIptuChange}
               className="w-full px-3.5 py-2.5 rounded-lg border-[1.5px] border-gray-200 font-body text-sm text-navy bg-white focus:outline-none focus:border-gold transition-colors placeholder:text-gray-400"
             />
           </div>
@@ -227,6 +264,14 @@ export function PropertyForm({ property, onSave, onClose }) {
 
         <Textarea label="Descrição" placeholder="Descreva o imóvel…" value={form.description} onChange={set('description')} rows={3} />
         <Input label="Diferenciais (separados por vírgula)" placeholder="Piscina, Academia, Varanda Grill" value={form.features} onChange={set('features')} />
+
+        <div className="border-t border-gray-100 pt-4 mt-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Dados do Proprietário</p>
+          <div className="grid grid-cols-2 gap-3 mb-2">
+            <Input label="Nome do Proprietário" placeholder="Ex: João da Silva" value={form.owner_name || ''} onChange={set('owner_name')} />
+            <Input label="Telefone / Contato" placeholder="(11) 99999-9999" value={form.owner_phone || ''} onChange={set('owner_phone')} />
+          </div>
+        </div>
 
         {/* ── Imagens ──────────────────────────────────────────────── */}
         <div>

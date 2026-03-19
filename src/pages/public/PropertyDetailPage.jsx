@@ -97,6 +97,12 @@ export function PropertyDetailPage({ property, onBack, onAdminClick, onLead, onR
             <div className="bg-navy rounded-2xl p-6 flex flex-col gap-3">
               <p className="text-white/50 text-xs uppercase tracking-wider">Valor</p>
               <p className="font-display text-3xl font-bold text-white">{formatPrice(property.price)}</p>
+              {(property.condominium > 0 || property.iptu > 0) && (
+                <div className="flex flex-col gap-1 -mt-1 mb-2">
+                  {property.condominium > 0 && <p className="text-white/70 text-sm">Condomínio: {formatPrice(property.condominium)}</p>}
+                  {property.iptu > 0 && <p className="text-white/70 text-sm">IPTU: {formatPrice(property.iptu)}</p>}
+                </div>
+              )}
               <hr className="border-white/15" />
               <p className="font-display text-lg text-white mb-1">Tenho Interesse</p>
               <p className="text-white/50 text-xs mb-2">O corretor entrará em contato em até 24h.</p>

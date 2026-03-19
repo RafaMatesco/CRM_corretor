@@ -53,6 +53,13 @@ export function PropertyCard({ property, onClick }) {
       {/* Body */}
       <div className="p-5">
         <p className="font-display text-2xl font-bold text-navy">{formatPrice(property.price)}</p>
+        {(property.condominium > 0 || property.iptu > 0) && (
+          <p className="text-[11px] text-gray-400 mt-0.5 mb-1 flex gap-1">
+            {property.condominium > 0 && <span>Cond: {formatPrice(property.condominium)}</span>}
+            {property.condominium > 0 && property.iptu > 0 && <span>·</span>}
+            {property.iptu > 0 && <span>IPTU: {formatPrice(property.iptu)}</span>}
+          </p>
+        )}
         <h3 className="text-base font-semibold mt-1.5 mb-1">{property.title}</h3>
         <p className="flex items-center gap-1 text-xs text-gray-400 mb-4 line-clamp-1" title={formatAddress(property)}>
           <MapPin size={12} className="shrink-0" /> {formatAddress(property)}

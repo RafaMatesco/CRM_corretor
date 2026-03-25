@@ -9,6 +9,8 @@ export function useAuth() {
 
   useEffect(() => {
     // Demo mode — nenhuma chamada de rede
+    console.log("is_demo="+IS_DEMO);
+    
     if (IS_DEMO) {
       setLoading(false)
       return

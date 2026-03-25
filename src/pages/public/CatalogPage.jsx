@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PublicNav } from '@/components/public/PublicNav'
 import { PropertyCard } from '@/components/public/PropertyCard'
 import { PropertyFilters } from '@/components/public/PropertyFilters'
@@ -16,6 +16,14 @@ export function CatalogPage({ properties, loading, onSelectProperty, onAdminClic
   const [form, setForm] = useState({ name: '', phone: '', message: '' })
   const [formStatus, setFormStatus] = useState('idle') // 'idle' | 'loading' | 'success' | 'error'
   const [formError, setFormError] = useState('')
+
+  useEffect(() => {
+    if (window.location.hash === '#contato' || window.location.search.includes('contato')) {
+      setTimeout(() => {
+        document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })
+      }, 500)
+    }
+  }, [])
 
   function handleFormChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))

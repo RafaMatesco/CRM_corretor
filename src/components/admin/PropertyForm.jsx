@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Save, Upload, X, Image, Loader2, Search, Plus, Check, SlidersHorizontal, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import { Save, Upload, X, Image, Loader2, Search, Plus, Check, SlidersHorizontal, ChevronDown, ChevronUp, Trash2, Star } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
 import { Toggle } from '@/components/ui/Toggle'
@@ -125,6 +125,16 @@ export function PropertyForm({ property, existingFeatures = [], onSave, onClose,
   const handleRemoveImage = async (url, idx) => {
     setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))
     await deleteImage(url)
+  }
+
+  const handleSetCover = (idx) => {
+    if (idx === 0) return
+    setForm((f) => {
+      const imgs = [...f.images]
+      const [chosen] = imgs.splice(idx, 1)
+      imgs.unshift(chosen)
+      return { ...f, images: imgs }
+    })
   }
 
   // ── Save ────────────────────────────────────────────────────────────────
@@ -303,11 +313,13 @@ export function PropertyForm({ property, existingFeatures = [], onSave, onClose,
             <div className="pt-4 mt-3 border-t border-gray-100 flex flex-col gap-5 animate-in slide-in-from-top-2">
               {/* Checkboxes grid */}
               {existingFeatures.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-3 gap-x-4">
-                  {existingFeatures.map(feat => {
+                <div style={{ columns: '2 150px', columnGap: '1rem' }}>
+                  {[...existingFeatures].sort((a, b) =>
+                    a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })
+                  ).map(feat => {
                     const isChecked = form.features.includes(feat)
                     return (
-                      <div key={feat} className="flex items-center gap-1 group">
+                      <div key={feat} className="flex items-center gap-1 group mb-2" style={{ breakInside: 'avoid' }}>
                         <label className="flex items-start gap-2 cursor-pointer flex-1">
                           <input 
                             type="checkbox" 
@@ -321,7 +333,7 @@ export function PropertyForm({ property, existingFeatures = [], onSave, onClose,
                           <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isChecked ? 'bg-gold border-gold text-white' : 'border-gray-300 bg-white group-hover:border-gold'}`}>
                             {isChecked && <Check size={12} strokeWidth={3} />}
                           </div>
-                          <span className="text-sm text-gray-600 select-none line-clamp-1" title={feat}>{feat}</span>
+                          <span className="text-sm text-gray-600 select-none">{feat}</span>
                         </label>
                         {onDeleteFeature && (
                           <button 
@@ -412,13 +424,20 @@ export function PropertyForm({ property, existingFeatures = [], onSave, onClose,
           {form.images.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mt-3">
               {form.images.map((url, i) => (
-                <div key={url + i} className="relative group rounded-lg overflow-hidden aspect-video bg-cream-dark">
+                <div
+                  key={url + i}
+                  className={`relative group rounded-lg overflow-hidden aspect-video bg-cream-dark ${
+                    i === 0 ? 'ring-2 ring-gold ring-offset-1' : ''
+                  }`}
+                >
                   <img
                     src={url}
                     alt=""
                     className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
+
+                  {/* Remover */}
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(url, i)}
@@ -427,9 +446,23 @@ export function PropertyForm({ property, existingFeatures = [], onSave, onClose,
                   >
                     <X size={12} />
                   </button>
+
+                  {/* Definir como capa (aparece ao hover nas não-capa) */}
+                  {i !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetCover(i)}
+                      className="absolute bottom-1 left-1 flex items-center gap-1 bg-black/60 hover:bg-gold text-white text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-all"
+                      title="Definir como capa"
+                    >
+                      <Star size={9} /> Definir capa
+                    </button>
+                  )}
+
+                  {/* Badge CAPA */}
                   {i === 0 && (
-                    <span className="absolute bottom-1 left-1 bg-gold text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                      CAPA
+                    <span className="absolute bottom-1 left-1 flex items-center gap-1 bg-gold text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                      <Star size={9} fill="currentColor" /> CAPA
                     </span>
                   )}
                 </div>

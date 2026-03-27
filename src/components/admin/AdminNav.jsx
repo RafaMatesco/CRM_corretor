@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 export function AdminNav({ user, onLogout, onViewPublic }) {
   return (
     <nav className="sticky top-0 z-40 h-16 bg-navy border-b border-white/10 flex items-center px-6 gap-4">
-      <span className="flex flex-col items-center leading-none select-none">
+      <span className="flex flex-col items-center leading-none select-none cursor-pointer" onClick={onViewPublic} title="Voltar ao portal">
         <span
           style={{
             fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
